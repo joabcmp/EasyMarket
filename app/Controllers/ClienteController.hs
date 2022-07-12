@@ -8,15 +8,11 @@ getClientes:: Connection -> IO [Cliente]
 getClientePorId:: Connection -> Int -> IO [Cliente]
 atualizaCliente::Connection -> Int -> String -> String -> String -> String -> String -> String -> String -> IO ()
 deletaCliente:: Connection -> Int -> IO ()
+getClientePorLoginSenha:: Connection -> String -> String -> IO [Cliente]
+realizaLogin:: Connection -> String -> String -> Bool
 
 cadastraCliente conn nome cpf login senha endereco telefone email = do
-    let q = "INSERT INTO        (Nome,\
-                                \CPF,\
-                                \Login,\
-                                \Senha,\
-                                \Endereco,\
-                                \Telefone,\
-                                \Email) VALUES (?,?,?,?,?,?,?);"
+    let q = "INSERT INTO Cliente (Nome, CPF, Login, Senha, Endereco, Telefone, Email) VALUES (?,?,?,?,?,?,?)"
     execute conn q (nome, cpf, login, senha, endereco, telefone, email)
     return ()
 
@@ -27,6 +23,12 @@ getClientes conn = do
 getClientePorId conn id = do
     let q = "SELECT Id_Cliente, Nome, CPF, Login, Senha, Endereco, Telefone, Email From Cliente WHERE Id_Cliente = ?;"
     query conn q (Only (id::Int)) :: IO [Cliente]
+
+getClientePorLoginSenha conn login senha = do
+    let q = "SELECT Id_Cliente, Nome, CPF, Login, Senha, Endereco, Telefone, Email From Cliente WHERE Login = ? AND Senha = ? ;"
+    query conn q (login, senha) :: IO [Cliente]
+
+realizaLogin conn login senha =  length [getClientePorLoginSenha conn login senha] /= 0
 
 atualizaCliente conn id nome cpf login senha endereco telefone email = do
     let q = "UPDATE Cliente\

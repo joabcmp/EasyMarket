@@ -9,21 +9,18 @@
 
 ## Build Aplication
 
-> Compilar Projeto.
-
-```
-    cabal build
-```
 > Instalação  GHCUP no Ubuntu
 ```
     curl --proto '=https' --tlsv1.2 -sSf https://get-ghcup.haskell.org | sh
 ```
+
 > Instalação postgresql no Ubuntu
 ```
     sudo apt update
     sudo apt install postgresql postgresql-contrib
     sudo systemctl start postgresql.service
 ```
+
 > Instalação das depêndencias necessárias
 ```
     cabal update
@@ -31,8 +28,12 @@
     apt install libpq-dev
 ```
 
-> Executar Projeto.
+> Compilar Projeto.
+```
+    cabal build
+```
 
+> Executar Projeto.
 ```
     cabal run
 ```
