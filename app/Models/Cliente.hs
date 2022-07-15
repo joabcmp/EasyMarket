@@ -5,10 +5,10 @@ import Database.PostgreSQL.Simple.FromRow
 
 toString::Cliente -> String
 
-toString cliente = "Nome: " ++ nome cliente ++ "\nCPF: " ++ cpf cliente ++ "\nLogin: " ++ login cliente ++ "\nEndereco: " ++ endereco cliente ++ "\nTelefone: " ++ telefone cliente ++ "\nEmail: " ++ email cliente
+toString cliente = "Id_Cliente: " ++ show (id_cliente cliente) ++ "Nome: " ++ nome cliente ++ "\nCPF: " ++ cpf cliente ++ "\nLogin: " ++ login cliente ++ "\nEndereco: " ++ endereco cliente ++ "\nTelefone: " ++ telefone cliente ++ "\nEmail: " ++ email cliente
 
 data Cliente = Cliente {
-    id_Cliente:: Int,
+    id_cliente:: Int,
     nome:: String,
     cpf:: String,
     login:: String,

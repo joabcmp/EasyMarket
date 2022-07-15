@@ -4,13 +4,16 @@ module Main where
 import Database.PostgreSQL.Simple
 import LocalDB.ConnectionDB
 import Controllers.ClienteController
+import Controllers.AdmController
 import Models.Cliente
-
-
+import Models.Adm
+import Views.MainAdm
+import Views.MainCliente
 main :: IO ()
 main = do
 
     conn <- iniciandoDatabase
+   
 
     putStrLn "      +-+-+-+-+ +-+-+-+-+-+-+"
     putStrLn "      |E|a|s|y| |M|a|r|k|e|t|"
@@ -43,7 +46,6 @@ cadastrarOuLogar conn tipoDeUsuario = do
     input <- getLine
     let opcao = read input
 
-
     seletorCadastroOuLogin conn opcao tipoDeUsuario
 
 --De acordo com a opção na função acima, é chamado uma tela/função
@@ -56,34 +58,41 @@ telaCadastro:: Connection -> Int -> IO()
 telaCadastro conn tipoDeUsuario = do
 
     putStrLn " ================================= "
-    putStrLn "|           CADASTRO               |"
+    putStrLn "|           CADASTRO              |"
     putStrLn " ================================= "
 
     if(tipoDeUsuario == 1) --adm
-      then  putStrLn "Digite seu CNPJ:"
-    else putStrLn "Digite seu CPF:"
-
+      then 
+        putStrLn "Digite seu CNPJ:"
+    else  
+      putStrLn "Digite seu CPF:"
     codigo <- getLine
     
     putStrLn "Digite seu Nome:"
     nome <- getLine
     
-    putStrLn "Digite seu email:"
-    email <- getLine
-    
-    putStrLn "Digite login:"
+    putStrLn "Escolha seu login:"
     login <- getLine
     
-    putStrLn "Digite sua senha:"
+    putStrLn "Escolha uma senha:"
     senha <- getLine
-    
+
     putStrLn "Digite seu endereço, tudo em uma linha só:"
     endereco <- getLine
 
-    putStrLn "Digite Telefone:"
-    telefone <- getLine
+    if(tipoDeUsuario == 2) --cliente
+      then do
 
-    cadastraCliente conn nome codigo login senha endereco telefone email
+        putStrLn "Digite o seu telefone:"
+        telefone <- getLine
+        
+        putStrLn "Digite o seu email:"
+        email <- getLine
+        cadastraCliente conn nome codigo login senha endereco telefone email
+    
+    else cadastraEstabelecimento conn login senha nome codigo endereco
+    
+      
 
     cadastrarOuLogar conn tipoDeUsuario
 
@@ -93,16 +102,27 @@ telaLogin conn tipoDelUsuario = do
     putStrLn "|           LOGIN                 |"
     putStrLn " ================================= "
 
-    putStrLn "Digite seu email:"
-    email <- getLine
+    putStrLn "Digite seu login:"
+    login <- getLine
     
     putStrLn "Digite sua senha:"
     senha <- getLine
-    if realizaLogin conn email senha then 
-        putStrLn "sucesso!"
-    else 
-        putStrLn "Erro Login ou senha invalido"
-
+    
+    if tipoDelUsuario == 1 then do
+        estabelecimento <- getEstabelecimentoPorLoginSenha conn login senha
+        if null estabelecimento then do
+            putStrLn "Erro Login ou senha invalido"
+            main
+        else 
+            mainAdm conn (id_Estabelecimento (head estabelecimento))
+    else do
+        cliente <- getClientePorLoginSenha conn login senha
+        if null cliente then do
+            putStrLn "Erro Login ou senha invalido"
+            main
+        else 
+            mainCliente conn (id_cliente (head cliente))
+            
 erro::IO()
 erro = do  
     putStrLn "Dado inválido"

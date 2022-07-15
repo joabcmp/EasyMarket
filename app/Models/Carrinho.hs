@@ -1,14 +1,19 @@
 module Models.Carrinho where
 
 import Database.PostgreSQL.Simple.FromRow
+ 
 
-toString::Carrinho -> String
-toString carrinho = 
+toString::[Carrinho] -> String
+toString [] = ""
+toString (carrinho:[]) = "Id_Cliente: " ++ show (id_cliente carrinho) ++ " | Id_Produto: " ++ show (id_produto carrinho) ++ " | Quantidade Produto: " ++ show (quantidadeDoProduto carrinho) ++ " | Nome Produto: " ++ nomeProduto carrinho ++ " | Preço: " ++ show(preco carrinho) 
 
-data Carrinho = carrinho {
-    -- To Do...
-    -- O carrinho deve ter produtos com suas quantidades    
+data Carrinho = Carrinho {
+    id_cliente:: Int,
+    id_produto:: Int,
+    quantidadeDoProduto:: Int,
+    nomeProduto::String,
+    preco::Float
 } deriving (Show, Read, Eq)
 
 instance FromRow Carrinho where
-    fromRow = Carrinho -- To Do...
+    fromRow = Carrinho <$> field <*> field <*> field <*> field <*> field 

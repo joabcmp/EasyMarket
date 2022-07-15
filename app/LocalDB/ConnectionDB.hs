@@ -22,16 +22,16 @@ createTables conn = do
 \    Login              VARCHAR(30),\
 \    Senha              VARCHAR,\
 \    Nome               CHAR(20),\
-\    CNPJ               INT,\
-\    Endereço           VARCHAR(100)\
+\    CNPJ               CHAR(14),\
+\    Endereco           VARCHAR(100)\
 \);\
 \\
 \CREATE TABLE IF NOT EXISTS Produto\
 \(\
 \    Id_Produto         SERIAL PRIMARY KEY,\
 \    Nome               VARCHAR(20) UNIQUE,\
-\    Preço              MONEY,\
-\    Descrição          VARCHAR(100),\
+\    Preco              REAL,\
+\    Descricao          VARCHAR(100),\
 \    Categoria          CHAR(10),\
 \    QuantidadeEstoque  INT,\
 \    Id_Estabelecimento INT,\
@@ -56,8 +56,7 @@ createTables conn = do
 \    ID_Compra     SERIAL PRIMARY KEY,\
 \    TipoPagamento CHAR(15),\
 \    DataPagamento DATE,\
-\    Status        CHAR(10),\
-\    TotalCompra   MONEY,\
+\    TotalCompra   REAL,\
 \    Id_Cliente    INT,\
 \    FOREIGN KEY (Id_Cliente) REFERENCES Cliente (ID_Cliente)\
 \);\
@@ -65,9 +64,11 @@ createTables conn = do
 \CREATE TABLE IF NOT EXISTS Carrinho\
 \(\
 \    QuantidadeDoProduto INT,\
-\    ID_Produto          INT PRIMARY KEY,\
+\    ID_Produto          INT,\
 \    ID_Compra           INT,\
-\    FOREIGN KEY (ID_Compra) REFERENCES Cliente (ID_Cliente),\
+\    Id_Cliente          INT,\
+\    FOREIGN KEY (Id_Cliente) REFERENCES Cliente (ID_Cliente),\
+\    FOREIGN KEY (ID_Compra) REFERENCES Compra (ID_Compra),\
 \    FOREIGN KEY (ID_Produto) REFERENCES Produto (ID_Produto)\
 \);"
     return ()

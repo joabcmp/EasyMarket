@@ -3,7 +3,7 @@ module Models.Compra where
 import Database.PostgreSQL.Simple.FromRow
 
 toString::Compra -> String
-toString compra = "Quantidade de itens: " ++ num_itens compra ++ "\nPreço total: " ++ preco compra
+toString compra = "Quantidade de itens: " ++ show (num_itens compra) ++ "\nPreço total: " ++ show (preco compra)
 
 data Compra = Compra {
     id_Compra:: Int,
