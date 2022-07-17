@@ -21,7 +21,7 @@ main = do
     putStrLn "      |E|a|s|y| |M|a|r|k|e|t|"
     putStrLn "      +-+-+-+-+ +-+-+-+-+-+-+"
 
-    putStrLn " =================================  "
+    putStrLn " ================================= "
     putStrLn "|                                 |"
     putStrLn "|       1-  ADMINISTRADOR         |"
     putStrLn "|       2-    CLIENTE             |"
@@ -41,7 +41,7 @@ main = do
 cadastrarOuLogar:: Connection -> Int -> IO()
 cadastrarOuLogar conn tipoDeUsuario = do
 
-    putStrLn " ================================= "
+    putStrLn " =================================  "
     putStrLn "|       1-   CADASTRO             |"
     putStrLn "|       2-    LOGIN               |"
     putStrLn " ================================= "
@@ -61,7 +61,7 @@ seletorCadastroOuLogin coon x tipoDeUsuario = erro
 telaCadastro:: Connection -> Int -> IO()
 telaCadastro conn tipoDeUsuario = do
 
-    putStrLn " =================================  "
+    putStrLn " ================================= "
     putStrLn "|           CADASTRO              |"
     putStrLn " ================================= "
 

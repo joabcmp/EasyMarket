@@ -1,13 +1,6 @@
 module Models.Adm where
 import Database.PostgreSQL.Simple.FromRow
 
-  --  Id_Estabelecimento SERIAL PRIMARY KEY,\
-  --  Login              VARCHAR(30),\
-  --  Senha              VARCHAR,\
-  --  Nome               CHAR(20),\
-  --  CNPJ               CHAR(14),\
-  --  Endereço           VARCHAR(100)\
-
 toString::Adm -> String
 
 toString estabelecimento = "ID do Estabelecimento: " ++ show (id_Estabelecimento estabelecimento)  ++ "\nLogin: " ++ login estabelecimento ++ "\nEmail: " ++ email estabelecimento ++ "\nTelefone: " ++ telefone estabelecimento ++ "\nNome: " ++ nome estabelecimento ++ "\nCNPJ: " ++ cnpj estabelecimento ++ "\nEndereço: " ++ endereco estabelecimento

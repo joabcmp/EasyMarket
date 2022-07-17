@@ -125,6 +125,8 @@ telaListagemDeProdutos conn id_estabelecimento = do
     
     putStrLn (P.toStringList produtos)
 
+    putStr "Digite enter para continuar"
+    opcao <- getLine
     --voltando para a tela inicial de adm
     mainAdm conn id_estabelecimento
 
