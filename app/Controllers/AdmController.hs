@@ -2,49 +2,60 @@
 module Controllers.AdmController where
 import Database.PostgreSQL.Simple
 import Models.Adm
+import Models.Balanco
 
-cadastraEstabelecimento::Connection -> String -> String -> String -> String -> String -> IO ()
-getEstabelecimentos:: Connection -> IO [Adm]
+cadastraEstabelecimento::Connection -> String -> String -> String -> String -> String -> String -> String -> IO ()
+
 getEstabelecimentoPorId:: Connection -> Int -> IO [Adm]
-atualizaEstabelecimento::Connection -> Int -> String -> String -> String -> Int -> String -> IO ()
-deletaEstabelecimento:: Connection -> Int -> IO ()
 getEstabelecimentoPorLoginSenha:: Connection -> String -> String -> IO [Adm]
-realizaLoginAdm:: Connection -> String -> String -> Bool
+getBalanco:: Connection -> Int -> IO [Balanco]
 
+atualizaNome::Connection -> String -> Int -> IO ()
+atualizaTelefone::Connection -> String -> Int -> IO ()
+atualizaEndereco::Connection -> String -> Int -> IO ()
+atualizaSenha::Connection -> String -> Int -> IO ()
 
-cadastraEstabelecimento conn login senha nome cnpj endereco = do
-    let q = "INSERT INTO Estabelecimento (Login, Senha, Nome, CNPJ, Endereco) VALUES (?,?,?,?,?)"
-    execute conn q (login, senha, nome, cnpj, endereco)
+cadastraEstabelecimento conn login senha nome email telefone cnpj endereco = do
+    let q = "INSERT INTO Estabelecimento (Login, Senha, Email, Telefone, Nome, CNPJ, Endereco) VALUES (?,?,?,?,?,?,?);"
+    execute conn q (login, senha, email, telefone, nome, cnpj, endereco)
     return ()
 
-getEstabelecimentos conn = do
-    let q = "SELECT Id_Estabelecimento, Login, Nome, CNPJ, endereco From Estabelecimento;"
-    query_ conn q :: IO [Adm]
-
 getEstabelecimentoPorId conn id = do
-    let q = "SELECT Id_Estabelecimento, Nome, CNPJ, endereco From Estabelecimento WHERE Id_Estabelecimento = ?;"
+    let q = "SELECT Id_Estabelecimento, Login, Senha, Email, Telefone, Nome, CNPJ, endereco From Estabelecimento WHERE Id_Estabelecimento = ?;"
     query conn q (Only (id::Int)) :: IO [Adm]
 
 getEstabelecimentoPorLoginSenha conn login senha = do
-    let q = "SELECT Id_Estabelecimento, Login, Senha, Nome, CNPJ, endereco From Estabelecimento WHERE Login = ? AND Senha = ? ;"
+    let q = "SELECT Id_Estabelecimento, Login, Senha, Email, Telefone, Nome, CNPJ, endereco From Estabelecimento WHERE Login = ? AND Senha = ?;"
     query conn q (login, senha) :: IO [Adm]
 
-getTeste conn = query conn "SELECT Id_Estabelecimento, Login, Senha, Nome, CNPJ, endereco From Estabelecimento"
+getBalanco conn id = do
+    let q = "SELECT C.Id_Cliente, CO.ID_Compra, C.Nome, C.Telefone, C.Email, SUM(CA.QuantidadeDoProduto) AS quantidadeDeProdutos, CO.tipoPagamento, CO.TotalCompra, cast(CO.dataPagamento AS varchar(15)) AS DataPagamento \
+    \From Estabelecimento AS E \
+    \INNER JOIN Produto AS P ON P.Id_Estabelecimento = E.Id_Estabelecimento \
+    \INNER JOIN Carrinho AS CA ON P.Id_Produto = E.Id_Estabelecimento \
+    \INNER JOIN Cliente AS C ON C.ID_Cliente = CA.Id_Cliente \
+    \INNER JOIN Compra AS CO ON CO.Id_Compra = CA.Id_Compra \
+    \WHERE E.Id_Estabelecimento = ? \
+    \GROUP BY C.Id_Cliente, CO.ID_Compra, C.Nome, C.Telefone, C.Email, CO.tipoPagamento, CO.TotalCompra, CO.dataPagamento;"
+    
+    query conn q (Only (id::Int)) :: IO [Balanco]
 
-realizaLoginAdm conn login senha =  not (null [getEstabelecimentoPorLoginSenha conn login senha])
-
-atualizaEstabelecimento conn id login senha nome cnpj endereco = do
-    let q = "UPDATE Estabelecimento\
-                \SET Login = ?,\
-                \SET Senha = ?,\
-                \SET Nome = ?,\
-                \SET CNPJ = ?,\
-                \SET endereco = ?,\
-                \WHERE Id_Estabelecimento = ?;"
-    execute conn q (login, senha, nome, cnpj, endereco, id)
+atualizaNome conn nome id = do
+    let q = "UPDATE Estabelecimento SET Nome = ? WHERE Id_Estabelecimento = ?;"
+    execute conn q (nome, id)
     return ()
 
-deletaEstabelecimento conn id = do
-    let q = "DELETE FROM Estabelecimento WHERE Id_Estabelecimento = ?;"
-    execute conn q (Only (id::Int))
+atualizaSenha conn senha id = do
+    let q = "UPDATE Estabelecimento SET senha = ? WHERE Id_Estabelecimento = ?;"
+    execute conn q (senha, id)
+    return ()
+
+atualizaTelefone conn telefone id = do
+    let q = "UPDATE Estabelecimento SET Telefone = ? WHERE Id_Estabelecimento = ?;"
+    execute conn q (telefone, id)
+    return ()
+
+atualizaEndereco conn endereco id = do
+    let q = "UPDATE Estabelecimento SET Endereco = ? WHERE Id_Estabelecimento = ?;"
+    execute conn q (endereco, id)
     return ()

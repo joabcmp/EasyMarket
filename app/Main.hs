@@ -13,7 +13,7 @@ import Utils.Utils
 
 main :: IO ()
 main = do
-
+    putStr "\ESC[2J"
     --Realizando comunicacao com a base
     conn <- iniciandoDatabase
    
@@ -41,7 +41,7 @@ main = do
 cadastrarOuLogar:: Connection -> Int -> IO()
 cadastrarOuLogar conn tipoDeUsuario = do
 
-    putStrLn " =================================  "
+    putStrLn " ================================= "
     putStrLn "|       1-   CADASTRO             |"
     putStrLn "|       2-    LOGIN               |"
     putStrLn " ================================= "
@@ -61,7 +61,7 @@ seletorCadastroOuLogin coon x tipoDeUsuario = erro
 telaCadastro:: Connection -> Int -> IO()
 telaCadastro conn tipoDeUsuario = do
 
-    putStrLn " ================================= "
+    putStrLn " =================================  "
     putStrLn "|           CADASTRO              |"
     putStrLn " ================================= "
 
@@ -85,26 +85,24 @@ telaCadastro conn tipoDeUsuario = do
     putStrLn "Digite seu endereço, tudo em uma linha só:"
     endereco <- getLine
 
-    if(tipoDeUsuario == 2) --cliente
-      then do
 
-        putStrLn "Digite o seu telefone:"
-        telefone <- getLine
+    putStrLn "Digite o seu telefone:"
+    telefone <- getLine
         
-        putStrLn "Digite o seu email:"
-        email <- getLine
+    putStrLn "Digite o seu email:"
+    email <- getLine
         
-        cadastraCliente conn nome codigo login senha endereco telefone email
-    
-    else cadastraEstabelecimento conn login senha nome codigo endereco
+    if(tipoDeUsuario == 2) --cliente
+      then cadastraCliente conn nome codigo login senha endereco telefone email
+    else cadastraEstabelecimento conn login senha nome email telefone codigo endereco
     
     cadastrarOuLogar conn tipoDeUsuario
 
 telaLogin:: Connection -> Int -> IO()
 telaLogin conn tipoDelUsuario = do
     
-    putStrLn " =================================  "
-    putStrLn "|           LOGIN                 |"
+    putStrLn " ================================= "
+    putStrLn "|             LOGIN               |"
     putStrLn " ================================= "
 
     putStrLn "Digite seu login:"

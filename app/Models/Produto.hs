@@ -6,6 +6,7 @@ toString::Produto -> String
 toStringList::[Produto] -> String
 toStringHeader:: String
 formataLinha::[Produto] -> String
+
 toStringHeader =  "|" ++ completeVazio "ID" 2 6 ++ "|" ++ completeVazio "Nome" 5 25 ++ "|" ++ completeVazio "Preço" 2 10 ++ "|" ++ completeVazio "Descrição" 10 30 ++ "|" ++ completeVazio "Quantidade Disponível" 1 20 ++ "|" ++ completeVazio "ID do estabelecimento" 1 25 ++ "|"
 
 toString produto = "ID do produto: " ++ show (id_Produto produto)  ++ "\nNome: " ++ nome produto ++ "\nPreço: " ++ show (preco produto) ++ "\nDescrição: " ++ descricao produto ++ "\nQuantidade no Estoque: " ++ show (quantidadeEstoque produto) ++ "\nID do estabelecimento: " ++ show (id_Estabelecimento produto) 

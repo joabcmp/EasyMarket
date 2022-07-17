@@ -23,6 +23,8 @@ createTables conn = do
 \    Senha              VARCHAR,\
 \    Nome               CHAR(30),\
 \    CNPJ               CHAR(14),\
+\    Email               CHAR(30),\
+\    Telefone            CHAR(14),\
 \    Endereco           VARCHAR(100)\
 \);\
 \\

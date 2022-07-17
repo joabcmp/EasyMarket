@@ -5,12 +5,14 @@ import Database.PostgreSQL.Simple
 import Models.Produto as P
 import Models.Carrinho as C
 import Models.Compra as CO
+import Models.Cliente as CL
 import Controllers.ProdutoController
 import Controllers.CompraController
+import Controllers.ClienteController 
 
 mainCliente::Connection->Int->IO()
 mainCliente conn id_cliente= do
-    
+    putStr "\ESC[2J"
     putStrLn "         +-+-+-+-+-+-+-+"
     putStrLn "         |C|L|I|E|N|T|E|"
     putStrLn "         +-+-+-+-+-+-+-+"
@@ -20,7 +22,8 @@ mainCliente conn id_cliente= do
     putStrLn "|       1- LISTAGEM DE PRODUTOS      |"
     putStrLn "|       2- VER CARRINHO ATUAL        |"
     putStrLn "|       3- VER PERFIL                |"
-    putStrLn "|       4- SAIR                      |"
+    putStrLn "|       4- LISTAR COMPRAS            |"
+    putStrLn "|       5- SAIR                      |"
     putStrLn "|                                    |"
     putStrLn " ==================================== "
 
@@ -33,11 +36,13 @@ selecao:: Connection->Int->Int -> IO()
 selecao conn id_cliente 1 = telaListagemDeProdutos conn id_cliente
 selecao conn id_cliente 2 = telaCarrinhoAtual conn id_cliente
 selecao conn id_cliente 3 = telaPerfil conn id_cliente
-selecao conn id_cliente 4 = telaSair  
+selecao conn id_cliente 4 = telaCompras conn id_cliente  
+selecao conn id_cliente 5 = telaSair  
 selecao conn id_cliente x = erroCliente conn id_cliente
 
 telaListagemDeProdutos:: Connection->Int->IO()
 telaListagemDeProdutos conn id_cliente = do
+    putStr "\ESC[2J"
     putStrLn " ==================================== "
     putStrLn "|        LISTAGEM DE PRODUTOS        |"
     putStrLn " ==================================== "
@@ -86,6 +91,7 @@ lerProdutos conn id_cliente id_produto = do
 
 telaCarrinhoAtual::Connection->Int->IO()
 telaCarrinhoAtual conn id_cliente = do
+    putStr "\ESC[2J"
     putStrLn " ==================================== "
     putStrLn "|        CARRINHO DE COMPRAS         |"
     putStrLn " ==================================== "
@@ -157,21 +163,106 @@ telaPerfil conn id_cliente = do
     putStrLn "|        PERFIL DO CLIENTE           |"
     putStrLn " ==================================== "
 
-    --exibir dados de cadastro e uma lista das compras realizadas?o que tiver mais fácil :) ou menos
-    --difícil
+    cliente <- getClientePorId conn id_cliente
+
+    putStrLn (CL.toString (head cliente))
 
     putStrLn " ============================================= "
-    putStrLn "Deseja voltar à tela inicial(0) ou sair(1)?"
-    input <- getLine
-    let opcao = read input
+    putStrLn "Deseja voltar à tela inicial(0) ou editar informações(1)?"
+    opcao <- getLine
+    if opcao == "0" then 
+        mainCliente conn id_cliente
+    else if opcao == "1" then
+        telaUpdateInformacoes conn id_cliente
+    else do
+        putStrLn "Opção invalida"
+        telaPerfil conn id_cliente
+telaUpdateInformacoes::Connection  -> Int -> IO()
+telaUpdateInformacoes conn id_cliente = do
+    putStrLn " ======================================== "
+    putStrLn "|             EDITAR PERFIL              |"
+    putStrLn " ======================================== "
 
-    telaVoltarAInicialOuSair conn id_cliente opcao
+    putStrLn " ======================================== "
+    putStrLn "|  Qual informação você deseja alterar?  |"
+    putStrLn "|                                        |"
+    putStrLn "|            1. Nome                     |"
+    putStrLn "|            2. Senha                    |"
+    putStrLn "|            3. Endereço                 |"
+    putStrLn "|            4. Telefone                 |"
+    putStrLn "|            5. Email                    |"
+    putStrLn " ======================================== "
+    putStrLn "Escolha uma opção: "
+    input <- getLine
+    --let op = read input
+    if input == "1" then do
+        putStrLn "Informe novo nome: "
+        nome <- getLine
+        atualizaNome conn nome id_cliente 
+        putStrLn "Nome alterado com sucesso"
+    else if input == "2" then do 
+        putStrLn "Informe nova senha: "
+        senha1 <- getLine
+
+        putStrLn "Informe novamente a senha: "
+        senha2 <- getLine
+        if senha1 == senha2 then do
+            atualizaSenha conn senha1 id_cliente
+            putStrLn "Senha alterado com sucesso"
+        else do
+            putStrLn "Senhas diferentes"
+            telaUpdateInformacoes conn id_cliente
+    else if input == "3" then do 
+        putStrLn "Informe novo endereço: "
+        endereco <- getLine
+        atualizaEndereco conn endereco id_cliente
+        putStrLn "Endereço alterado com sucesso"
+    else if input == "4" then do 
+        putStrLn "Informe novo telefone: "
+        telefone <- getLine
+        atualizaTelefone conn telefone id_cliente
+        putStrLn "Telefone alterado com sucesso"
+    else if input == "5" then do 
+        putStrLn "Informe novo e-mail: "
+        email <- getLine
+        atualizaEmail conn email id_cliente
+        putStrLn "Email alterado com sucesso"
+    else
+        putStrLn "Opção Invalida..."
+    mainCliente conn id_cliente
+
+telaCompras::Connection -> Int -> IO()
+telaCompras conn id_cliente = do
+    putStr "\ESC[2J"
+    putStrLn " ======================================== "
+    putStrLn "|            COMPRAS REALIZADAS          |"
+    putStrLn " ======================================== "
+
+    compras <- getComprasPorIdCliente conn id_cliente
+
+    putStrLn (CO.toStringList compras)
+    putStrLn "Digite 0 para continuar ou Id Compra para ver produtos comprados"
+    opcao <- getLine 
+    if opcao /= "0" then do
+        
+        putStrLn " ==================================== "
+        putStrLn "|        DETALHES DA COMPRA          |"
+        putStrLn " ==================================== "
+
+        produtos <- getProdPorIdCompra conn (read opcao)
+
+        putStrLn (P.toStringList produtos)
+
+        putStrLn "Pressione enter para continuar"
+        opcao <- getLine
+        mainCliente conn id_cliente
+    else 
+        mainCliente conn id_cliente
 
 telaVoltarAInicialOuSair::Connection->Int->Int -> IO()
 telaVoltarAInicialOuSair conn id_cliente 0 = mainCliente conn id_cliente
 telaVoltarAInicialOuSair conn id_cliente 1 = telaSair
 telaVoltarAInicialOuSair conn id_cliente x = erroCliente conn id_cliente
-
 
 telaSair::IO()
 telaSair = do

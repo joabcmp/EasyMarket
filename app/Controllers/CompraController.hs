@@ -5,12 +5,16 @@ import Models.Compra
 import Models.Carrinho
 
 cadastraCompra::Connection -> String -> String -> String -> String -> String -> IO ()
+
 insereProdutoCarrinho::Connection->Int->Int->Int-> IO ()
-getCompras:: Connection -> IO [Compra]
+insereCompra:: Connection -> String -> [Carrinho] -> Int -> IO [Compra]
+
+getComprasPorIdCliente:: Connection ->Int -> IO [Compra]
 getCompraPorId:: Connection -> Int -> IO [Compra]
 getCarrinhoPorIdCliente:: Connection -> Int -> IO [Carrinho]
+
 deleteCarrinhoPorIdClienteIdProduto:: Connection -> Int -> Int -> IO ()
-insereCompra:: Connection -> String -> [Carrinho] -> Int -> IO [Compra]
+
 subtraiQuantidadeProdutos:: Connection -> [Carrinho] -> IO ()
 
 cadastraCompra conn tipoPagamento dataPagamento status totalCompra id_Cliente = do
@@ -23,12 +27,12 @@ insereProdutoCarrinho conn id_produto id_cliente quantidade = do
     execute conn q (id_produto, id_cliente, quantidade)
     return ()
 
-getCompras conn = do
-    let q = "SELECT ID_Compra, TipoPagamento DataPagamento Status TotalCompra Id_Cliente From Compra;"
-    query_ conn q :: IO [Compra]
+getComprasPorIdCliente conn id_cliente = do
+    let q = "SELECT ID_Compra, TipoPagamento, cast(dataPagamento as varchar(15)) AS DataPagamento, TotalCompra, Id_Cliente FROM Compra WHERE Id_Cliente = ? ;"
+    query conn q (Only (id_cliente::Int)) :: IO [Compra]
 
 getCompraPorId conn id = do
-    let q = "SELECT ID_Compra, TipoPagamento DataPagamento Status TotalCompra Id_Cliente From Compra WHERE Id_Compra = ?;"
+    let q = "SELECT ID_Compra, TipoPagamento DataPagamento Status TotalCompra Id_Cliente FROM Compra WHERE Id_Compra = ?;"
     query conn q (Only (id::Int)) :: IO [Compra]
 
 getCarrinhoPorIdCliente conn id = do

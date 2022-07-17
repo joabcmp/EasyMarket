@@ -5,13 +5,14 @@ import Database.PostgreSQL.Simple
 import LocalDB.ConnectionDB
 import Controllers.AdmController
 import Controllers.ProdutoController 
-import Models.Adm
+import Models.Adm as A
 import Models.Produto as P
+import Models.Balanco as B
 --TELAS DOS ADMS
 
 mainAdm::Connection-> Int-> IO()
 mainAdm conn id_estabelecimento = do
-
+    putStr "\ESC[2J"
     putStrLn "             +-+-+-+"
     putStrLn "             |A|D|M|"
     putStrLn "             +-+-+-+"
@@ -21,7 +22,7 @@ mainAdm conn id_estabelecimento = do
     putStrLn "|       1- CADASTRAR PRODUTO         |"
     putStrLn "|       2- EXCLUIR PRODUTO           |"
     putStrLn "|       3- VER BALANÇO DE ESTOQUE    |"
-    putStrLn "|       4- CLIENTES                  |"
+    putStrLn "|       4- VER INFORMAÇÕES CONTA     |"
     putStrLn "|       5- SAIR                      |"
     putStrLn "|                                    |"
     putStrLn " ==================================== "
@@ -36,13 +37,13 @@ selecao::Connection-> Int->Int->IO()
 selecao conn id_estabelecimento 1 = telaCadastrarProduto  conn id_estabelecimento
 selecao conn id_estabelecimento 2 = telaExcluirProduto conn id_estabelecimento
 selecao conn id_estabelecimento 3 = telaBalancoEstoque conn id_estabelecimento
-selecao conn id_estabelecimento 4 = telaClientes conn id_estabelecimento
+selecao conn id_estabelecimento 4 = telaPerfil conn id_estabelecimento
 selecao conn id_estabelecimento 5 = telaSair 
 selecao conn id_estabelecimento x = erroAdm conn id_estabelecimento
 
 telaCadastrarProduto:: Connection-> Int -> IO()
 telaCadastrarProduto conn id_estabelecimento = do
-    
+    putStr "\ESC[2J"
     putStrLn " ==================================== "
     putStrLn "|        CADASTRAR PRODUTO           |"
     putStrLn " ==================================== "
@@ -115,6 +116,7 @@ selecaoEstoque conn id_estabelecimento x = erroAdm conn id_estabelecimento
 
 telaListagemDeProdutos::Connection-> Int->IO()
 telaListagemDeProdutos conn id_estabelecimento = do
+    putStr "\ESC[2J"
     putStrLn " ==================================== "
     putStrLn "|        LISTAGEM DE PRODUTOS        |"
     putStrLn " ==================================== " 
@@ -128,17 +130,39 @@ telaListagemDeProdutos conn id_estabelecimento = do
 
 telaVendasRealizadas::Connection-> Int->IO()
 telaVendasRealizadas conn id_estabelecimento = do
+    putStr "\ESC[2J"
     putStrLn " ==================================== "
     putStrLn "|        VENDAS REALIZADAS           |"
     putStrLn " ==================================== " 
 
-    --listar as compras 
+    balanco <- getBalanco conn id_estabelecimento
+
+    putStrLn (B.toString balanco)
+
+    putStrLn "Digite 0 para continuar ou Id Compra para ver detalhes compra"
+    opcao <- getLine 
+    if opcao /= "0" then do
+        putStr "\ESC[2J"
+        putStrLn " ==================================== "
+        putStrLn "|        DETALHES DA COMPRA          |"
+        putStrLn " ==================================== "
+
+        produtos <- getProdPorIdCompra conn (read opcao)
+
+        putStrLn (P.toStringList produtos)
+
+        putStrLn "Pressione enter para continuar"
+        opcao <- getLine
+        mainAdm conn id_estabelecimento
+    else 
+        mainAdm conn id_estabelecimento
 
     --voltando para a tela inicial de adm
     mainAdm conn id_estabelecimento
 
 telaDetalhamentoDeProduto::Connection-> Int->IO()
 telaDetalhamentoDeProduto conn id_estabelecimento = do
+    putStr "\ESC[2J"
     putStrLn " ==================================== "
     putStrLn "|      DETALHAMENTO DE PRODUTO       |"
     putStrLn " ==================================== " 
@@ -154,55 +178,76 @@ telaDetalhamentoDeProduto conn id_estabelecimento = do
     --voltando para a tela inicial de adm
     mainAdm conn id_estabelecimento
 
-telaClientes::Connection-> Int->IO()
-telaClientes conn id_estabelecimento = do
+telaPerfil::Connection->Int->IO()
+telaPerfil conn id_estabelecimento = do
     putStrLn " ==================================== "
-    putStrLn "|            CLIENTES                |"
-    putStrLn " ==================================== "
-
-    putStrLn " ==================================== "
-    putStrLn "|                                    |"
-    putStrLn "|       1- LISTAR CLIENTES           |"
-    putStrLn "|       2- ACESSAR CLIENTE           |"
-    putStrLn "|                                    |"
+    putStrLn "|        PERFIL DO ESTABELECIMENTO   |"
     putStrLn " ==================================== "
 
-    putStrLn "Digite sua opção:"
+    estabelecimento <- getEstabelecimentoPorId conn id_estabelecimento
+
+    putStrLn (A.toString (head estabelecimento))
+
+    putStrLn " ============================================= "
+    putStrLn "Deseja voltar à tela inicial(0) ou editar informações(1)?"
+    opcao <- getLine
+    if opcao == "0" then 
+        mainAdm conn id_estabelecimento
+    else if opcao == "1" then
+        telaUpdateInformacoes conn id_estabelecimento
+    else do
+        putStrLn "Opção invalida"
+        telaPerfil conn id_estabelecimento
+
+telaUpdateInformacoes::Connection  -> Int -> IO()
+telaUpdateInformacoes conn id_estabelecimento = do
+
+    putStrLn " ======================================== "
+    putStrLn "|             EDITAR PERFIL              |"
+    putStrLn " ======================================== "
+
+    putStrLn " ======================================== "
+    putStrLn "|  Qual informação você deseja alterar?  |"
+    putStrLn "|                                        |"
+    putStrLn "|            1. Nome do Estabelecimento  |"
+    putStrLn "|            2. Senha                    |"
+    putStrLn "|            3. Endereço                 |"
+    putStrLn "|            4. Telefone                 |"
+    putStrLn " ======================================== "
+    putStrLn "Escolha uma opção: "
     input <- getLine
-    let opcao = read input
+    --let op = read input
+    if input == "1" then do
+        putStrLn "Informe novo nome: "
+        nome <- getLine
+        atualizaNome conn nome id_estabelecimento 
+        putStrLn "Nome alterado com sucesso"
+    else if input == "2" then do 
+        putStrLn "Informe nova senha: "
+        senha1 <- getLine
 
-    selecaoClientes conn id_estabelecimento opcao
-
-selecaoClientes::Connection-> Int-> Int -> IO()
-selecaoClientes conn id_estabelecimento 1 = telaListagemClientes conn id_estabelecimento
-selecaoClientes conn id_estabelecimento 2 = telaAcessarCliente conn id_estabelecimento
-selecaoClientes conn id_estabelecimento x = erroAdm conn id_estabelecimento
-
-telaListagemClientes::Connection->Int->IO()
-telaListagemClientes conn id_estabelecimento = do
-    putStrLn " ==================================== "
-    putStrLn "|       LISTAGEM DE CLIENTES         |"
-    putStrLn " ==================================== " 
-
-    --listar infos dos clientes 
-
-    --voltando para a tela inicial de adm
+        putStrLn "Informe novamente a senha: "
+        senha2 <- getLine
+        if senha1 == senha2 then do
+            atualizaSenha conn senha1 id_estabelecimento
+            putStrLn "Senha alterado com sucesso"
+        else do
+            putStrLn "Senhas diferentes"
+            telaUpdateInformacoes conn id_estabelecimento
+    else if input == "3" then do 
+        putStrLn "Informe novo endereço: "
+        endereco <- getLine
+        atualizaEndereco conn endereco id_estabelecimento
+        putStrLn "Endereço alterado com sucesso"
+    else if input == "4" then do 
+        putStrLn "Informe novo telefone: "
+        telefone <- getLine
+        atualizaTelefone conn telefone id_estabelecimento
+        putStrLn "Telefone alterado com sucesso"
+    else
+        putStrLn "Opção Invalida..."
     mainAdm conn id_estabelecimento
 
-telaAcessarCliente::Connection->Int->IO()
-telaAcessarCliente conn id_estabelecimento = do
-    putStrLn " ==================================== "
-    putStrLn "|         ACESSAR CLIENTE            |"
-    putStrLn " ==================================== " 
-
-    putStrLn "Qual o id do cliente que você deseja acessar?"
-    input <- getLine
-
-
-    putStrLn "detalhes..."
-
-    --voltando para a tela inicial de adm
-    mainAdm conn id_estabelecimento
 
 telaSair::IO()
 telaSair = do
