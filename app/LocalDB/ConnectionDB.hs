@@ -21,7 +21,7 @@ createTables conn = do
 \    Id_Estabelecimento SERIAL PRIMARY KEY,\
 \    Login              VARCHAR(30),\
 \    Senha              VARCHAR,\
-\    Nome               CHAR(20),\
+\    Nome               CHAR(30),\
 \    CNPJ               CHAR(14),\
 \    Endereco           VARCHAR(100)\
 \);\
@@ -35,7 +35,7 @@ createTables conn = do
 \    Categoria          CHAR(10),\
 \    QuantidadeEstoque  INT,\
 \    Id_Estabelecimento INT,\
-\    FOREIGN KEY (Id_Estabelecimento) REFERENCES Estabelecimento (Id_Estabelecimento)\
+\    FOREIGN KEY (Id_Estabelecimento) REFERENCES Estabelecimento (Id_Estabelecimento) ON DELETE CASCADE\
 \);\
 \\
 \CREATE TABLE IF NOT EXISTS Cliente\

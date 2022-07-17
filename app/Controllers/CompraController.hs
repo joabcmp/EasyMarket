@@ -10,7 +10,9 @@ getCompras:: Connection -> IO [Compra]
 getCompraPorId:: Connection -> Int -> IO [Compra]
 getCarrinhoPorIdCliente:: Connection -> Int -> IO [Carrinho]
 deleteCarrinhoPorIdClienteIdProduto:: Connection -> Int -> Int -> IO ()
-insereCompra:: Connection -> String -> Int -> Int -> IO ()
+insereCompra:: Connection -> String -> [Carrinho] -> Int -> IO [Compra]
+subtraiQuantidadeProdutos:: Connection -> [Carrinho] -> IO ()
+
 cadastraCompra conn tipoPagamento dataPagamento status totalCompra id_Cliente = do
     let q = "INSERT INTO Compra (TipoPagamento, DataPagamento, Status, TotalCompra, Id_Cliente) VALUES (?,?,?,?,?)"
     execute conn q (tipoPagamento, dataPagamento, status, totalCompra, id_Cliente)
@@ -38,13 +40,27 @@ deleteCarrinhoPorIdClienteIdProduto conn id_cliente id_produto = do
     execute conn q (id_cliente, id_produto)
     return ()
 
-insereCompra conn tipoPagamento totalCompra id_cliente = do
-    let q = "INSERT INTO COMPRA (TipoPagamento, DataPagamento, TotalCompra, Id_Cliente) VALUES (?, NOW(), ?, ?);"
-    execute conn q (tipoPagamento, totalCompra, id_cliente)
+insereCompra conn tipoPagamento carrinho id_cliente = do
+    let q1 = "INSERT INTO COMPRA (TipoPagamento, DataPagamento, TotalCompra, Id_Cliente) VALUES (?, NOW(), ?, ?) returning id_compra, tipoPagamento, cast(dataPagamento as varchar(15)) AS DataPagamento, TotalCompra, Id_Cliente;"
     
-    let q = "UPDATE Produto P SET QuantidadeEstoque = QuantidadeEstoque - ? FROM Carrinho C WHERE C.Id_Produto = P.Id_Produto AND Id_Cliente = ? AND c.id_Compra IS NULL;"
-    execute conn q (totalCompra, id_cliente)
+    compra  <- query conn q1 (tipoPagamento, (somaTotalValor carrinho), id_cliente) :: IO [Compra]
+    
+    let id_compra = id_Compra (head compra)
+    
+    subtraiQuantidadeProdutos conn carrinho
 
-    let q = "UPDATE Carrinho SET Id_Compra = 1 WHERE Id_Cliente = ? AND Id_Compra IS NULL;"
-    execute conn q (id_cliente)
-    return ()
+    let q3 = "UPDATE Carrinho SET Id_Compra = ? WHERE Id_Cliente = ? AND Id_Compra IS NULL;"
+    execute conn q3 (id_compra, id_cliente)
+    return compra
+
+subtraiQuantidadeProdutos conn (carrinho:[]) = do
+    let q = "UPDATE Produto SET QuantidadeEstoque = QuantidadeEstoque - ? WHERE Id_Produto = ?"
+    a <- execute conn q (quantidadeDoProduto carrinho, id_produto carrinho)
+    putStrLn ""
+
+subtraiQuantidadeProdutos conn (carrinho:t) = do
+    let q = "UPDATE Produto SET QuantidadeEstoque = QuantidadeEstoque - ? WHERE Id_Produto = ?"
+
+    a <- execute conn q (quantidadeDoProduto carrinho, id_produto carrinho)
+
+    subtraiQuantidadeProdutos conn t

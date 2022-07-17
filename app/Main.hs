@@ -9,17 +9,19 @@ import Models.Cliente
 import Models.Adm
 import Views.MainAdm
 import Views.MainCliente
+import Utils.Utils
+
 main :: IO ()
 main = do
 
+    --Realizando comunicacao com a base
     conn <- iniciandoDatabase
    
-
     putStrLn "      +-+-+-+-+ +-+-+-+-+-+-+"
     putStrLn "      |E|a|s|y| |M|a|r|k|e|t|"
     putStrLn "      +-+-+-+-+ +-+-+-+-+-+-+"
 
-    putStrLn " ================================= "
+    putStrLn " =================================  "
     putStrLn "|                                 |"
     putStrLn "|       1-  ADMINISTRADOR         |"
     putStrLn "|       2-    CLIENTE             |"
@@ -27,7 +29,9 @@ main = do
     putStrLn " ================================= "
 
     putStrLn "Digite sua opção:"
+    
     opcao <- getLine
+    
     let tipoDeUsuario = read opcao
 
     if tipoDeUsuario == 1 || tipoDeUsuario == 2
@@ -37,7 +41,7 @@ main = do
 cadastrarOuLogar:: Connection -> Int -> IO()
 cadastrarOuLogar conn tipoDeUsuario = do
 
-    putStrLn " ================================= "
+    putStrLn " =================================  "
     putStrLn "|       1-   CADASTRO             |"
     putStrLn "|       2-    LOGIN               |"
     putStrLn " ================================= "
@@ -66,6 +70,7 @@ telaCadastro conn tipoDeUsuario = do
         putStrLn "Digite seu CNPJ:"
     else  
       putStrLn "Digite seu CPF:"
+    
     codigo <- getLine
     
     putStrLn "Digite seu Nome:"
@@ -88,17 +93,17 @@ telaCadastro conn tipoDeUsuario = do
         
         putStrLn "Digite o seu email:"
         email <- getLine
+        
         cadastraCliente conn nome codigo login senha endereco telefone email
     
     else cadastraEstabelecimento conn login senha nome codigo endereco
     
-      
-
     cadastrarOuLogar conn tipoDeUsuario
 
 telaLogin:: Connection -> Int -> IO()
 telaLogin conn tipoDelUsuario = do
-    putStrLn " ================================= "
+    
+    putStrLn " =================================  "
     putStrLn "|           LOGIN                 |"
     putStrLn " ================================= "
 
@@ -109,7 +114,9 @@ telaLogin conn tipoDelUsuario = do
     senha <- getLine
     
     if tipoDelUsuario == 1 then do
+        
         estabelecimento <- getEstabelecimentoPorLoginSenha conn login senha
+        
         if null estabelecimento then do
             putStrLn "Erro Login ou senha invalido"
             main

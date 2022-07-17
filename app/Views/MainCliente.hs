@@ -4,10 +4,13 @@ module Views.MainCliente where
 import Database.PostgreSQL.Simple
 import Models.Produto as P
 import Models.Carrinho as C
+import Models.Compra as CO
 import Controllers.ProdutoController
 import Controllers.CompraController
+
 mainCliente::Connection->Int->IO()
 mainCliente conn id_cliente= do
+    
     putStrLn "         +-+-+-+-+-+-+-+"
     putStrLn "         |C|L|I|E|N|T|E|"
     putStrLn "         +-+-+-+-+-+-+-+"
@@ -55,14 +58,20 @@ lerProdutos::Connection->Int-> Int -> IO()
 lerProdutos conn id_cliente (-1) = telaCarrinhoAtual conn id_cliente
 lerProdutos conn id_cliente (-2) = mainCliente conn id_cliente
 lerProdutos conn id_cliente id_produto = do
-    --adicionar o produto no carrinho da compra do cliente
+    --adicionar o proprecioneduto no carrinho da compra do cliente
     putStrLn "Informe a quantidade de produtos desejados:"
     quantidade <- getLine
+    produto <- getProdPorId conn id_produto
 
-    insereProdutoCarrinho conn id_produto id_cliente (read quantidade)
-
-    putStrLn "Produto adicionado."
-    
+    if (quantidadeEstoque (head (produto)) < read quantidade) 
+        then do
+            putStrLn "Quantidade não disponivel no momento, pressione enter para continuar"
+            opcao <- getLine
+            putStrLn "\n"
+    else do
+        insereProdutoCarrinho conn id_produto id_cliente (read quantidade)
+        putStrLn "Produto adicionado."
+        
     produtos <- getProds conn
     putStrLn (P.toStringList produtos)
 
@@ -120,15 +129,19 @@ telaFinalizarCompra conn id_cliente= do
     putStrLn "Informe o tipo de pagamento:(cartão/em espécie/PIX)"
     tipoDePagamento <- getLine
 
-    insereCompra conn tipoDePagamento 10 id_cliente
+    carrinho <- getCarrinhoPorIdCliente conn id_cliente 
+
+    compra <- insereCompra conn tipoDePagamento carrinho id_cliente
 
     putStrLn "..."
     putStrLn "Compra finalizada."
 
-    --putStrLn " ==================================== "
-    --putStrLn "|        DETALHES DA COMPRA          |"
-    --putStrLn " ==================================== "
+    putStrLn " ==================================== "
+    putStrLn "|        DETALHES DA COMPRA          |"
+    putStrLn " ==================================== "
 
+    putStrLn (CO.toString (head compra))
+   
     --exibir detalhes da comprar:produtos + preço final + tipo de pagamento + status finalizado
 
     putStrLn " ============================================= "

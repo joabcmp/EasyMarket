@@ -42,6 +42,7 @@ selecao conn id_estabelecimento x = erroAdm conn id_estabelecimento
 
 telaCadastrarProduto:: Connection-> Int -> IO()
 telaCadastrarProduto conn id_estabelecimento = do
+    
     putStrLn " ==================================== "
     putStrLn "|        CADASTRAR PRODUTO           |"
     putStrLn " ==================================== "
